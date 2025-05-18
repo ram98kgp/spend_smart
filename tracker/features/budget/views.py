@@ -30,71 +30,85 @@ class BudgetViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
     @swagger_auto_schema(
-        operation_description="Get budget analytics for the current period",
+        operation_description="Get budget analytics for both weekly and monthly periods",
         responses={
             200: BudgetAnalyticsSerializer(many=True)
         }
     )
     @action(detail=False, methods=['get'])
     def analytics(self, request):
-        """Get budget analytics for the current period."""
+        """Get budget analytics for both weekly and monthly periods."""
         today = timezone.now().date()
         
-        # Get the active budget for the user
-        try:
-            budget = self.get_queryset().latest('created_at')
-        except Budget.DoesNotExist:
+        # Get both weekly and monthly budgets for the user
+        weekly_budget = self.get_queryset().filter(period='weekly').order_by('-created_at').first()
+        monthly_budget = self.get_queryset().filter(period='monthly').order_by('-created_at').first()
+
+        if not weekly_budget and not monthly_budget:
             return Response({
-                'error': 'No budget found. Please set a budget first.'
+                'error': 'No budgets found. Please set at least one budget first.'
             }, status=status.HTTP_404_NOT_FOUND)
-        
-        # Calculate the start date based on the budget period
-        if budget.period == 'weekly':
-            start_date = today - timedelta(days=today.weekday())
-        else:  # monthly
-            start_date = today.replace(day=1)
 
-        # Calculate total spent amount for the period
-        spent = GroceryItem.objects.filter(
-            user=request.user,
-            created_at__date__gte=start_date,
-            created_at__date__lte=today
-        ).aggregate(total=Sum('price'))['total'] or Decimal('0')
+        def get_period_analytics(budget, start_date):
+            if not budget:
+                return None
 
-        # Check if we need to send a notification
-        if budget.should_send_notification(spent):
-            try:
-                send_budget_notification(request.user, budget, spent)
-                budget.notification_sent = True
-                budget.save()
-            except Exception as e:
-                print(f"Failed to send budget notification: {e}")
+            # Calculate total spent amount for the period
+            spent = GroceryItem.objects.filter(
+                user=request.user,
+                created_at__date__gte=start_date,
+                created_at__date__lte=today
+            ).aggregate(total=Sum('price'))['total'] or Decimal('0')
 
-        # Get spending by category for the period
-        category_spending = GroceryItem.objects.filter(
-            user=request.user,
-            created_at__date__gte=start_date,
-            created_at__date__lte=today
-        ).values('category__name').annotate(
-            total=Sum('price')
-        ).order_by('-total')
+            # Check if we need to send a notification
+            if budget.should_send_notification(spent):
+                try:
+                    send_budget_notification(request.user, budget, spent)
+                    budget.notification_sent = True
+                    budget.save()
+                except Exception as e:
+                    print(f"Failed to send budget notification: {e}")
 
-        remaining = budget.amount - spent
+            # Get spending by category for the period
+            category_spending = GroceryItem.objects.filter(
+                user=request.user,
+                created_at__date__gte=start_date,
+                created_at__date__lte=today
+            ).values('category__name').annotate(
+                total=Sum('price')
+            ).order_by('-total')
+
+            remaining = budget.amount - spent
+
+            return {
+                'period': budget.period,
+                'budget_amount': budget.amount,
+                'spent_amount': spent,
+                'remaining_amount': remaining,
+                'notification_threshold': budget.notification_threshold,
+                'notification_sent': budget.notification_sent,
+                'start_date': start_date,
+                'end_date': today,
+                'category_breakdown': [
+                    {
+                        'category_name': item['category__name'],
+                        'spent_amount': item['total'],
+                        'percentage_of_total': (item['total'] / spent * 100) if spent > 0 else Decimal('0')
+                    } for item in category_spending
+                ]
+            }
+
+        # Calculate start dates for both periods
+        weekly_start = today - timedelta(days=today.weekday()) if weekly_budget else None
+        monthly_start = today.replace(day=1) if monthly_budget else None
+
+        # Get analytics for both periods
+        weekly_analytics = get_period_analytics(weekly_budget, weekly_start) if weekly_budget else None
+        monthly_analytics = get_period_analytics(monthly_budget, monthly_start) if monthly_budget else None
 
         response_data = {
-            'period': budget.period,
-            'budget_amount': budget.amount,
-            'spent_amount': spent,
-            'remaining_amount': remaining,
-            'notification_threshold': budget.notification_threshold,
-            'notification_sent': budget.notification_sent,
-            'category_breakdown': [
-                {
-                    'category_name': item['category__name'],
-                    'spent_amount': item['total'],
-                    'percentage_of_total': (item['total'] / spent * 100) if spent > 0 else Decimal('0')
-                } for item in category_spending
-            ]
+            'weekly': weekly_analytics,
+            'monthly': monthly_analytics
         }
 
         return Response(response_data) 
