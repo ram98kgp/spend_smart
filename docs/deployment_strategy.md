@@ -9,12 +9,6 @@
    - Containerized deployment for consistency
    Ex : (AWS ECS/EC2)
 
-2. **Background Processing** 
-   - Celery workers in separate container clusters
-   - AI Processing Workers: OpenAI API calls, receipt analysis
-   - General Workers: Budget calculations, notifications
-   - Auto-scaling based on SQS queue metrics
-   Ex : (AWS ECS)
 
 3. **Message Queue & Cache** 
    - Redis for Celery task queue
