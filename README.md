@@ -104,6 +104,35 @@ SpendSmart is a Django-based application that helps users track and analyze thei
 
 ## API Usage Guide
 
+
+
+### Budget Management API
+
+**Create Budget**:
+```json
+POST /api/budgets/
+{
+    "amount": 500.00,
+    "period": "monthly",
+    "currency": "USD",
+    "notification_threshold": 400.00
+}
+```
+
+**Response Format**:
+```json
+{
+    "id": 1,
+    "amount": 500.00,
+    "period": "monthly",
+    "currency": "USD",
+    "notification_threshold": 400.00,
+    "notification_sent": false,
+    "currency_symbol": "$"
+}
+```
+
+
 ### Receipt Processing API
 
 **Endpoint**: `POST /api/receipts/`
@@ -133,32 +162,6 @@ SpendSmart is a Django-based application that helps users track and analyze thei
     "platform": "Platform Name",
     "status": "processing",
     "created_at": "YYYY-MM-DD HH:MM:SS"
-}
-```
-
-### Budget Management API
-
-**Create Budget**:
-```json
-POST /api/budgets/
-{
-    "amount": 500.00,
-    "period": "monthly",
-    "currency": "USD",
-    "notification_threshold": 400.00
-}
-```
-
-**Response Format**:
-```json
-{
-    "id": 1,
-    "amount": 500.00,
-    "period": "monthly",
-    "currency": "USD",
-    "notification_threshold": 400.00,
-    "notification_sent": false,
-    "currency_symbol": "$"
 }
 ```
 
