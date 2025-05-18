@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from django.core.management.utils import get_random_secret_key
+
 
 # Load environment variables
 load_dotenv()
@@ -25,7 +27,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-cl5!5o42j0v=e-vsn=i70hbpdj7kw+c4q2rrpths52#*#o$o)s'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+
+if not SECRET_KEY:
+    # For development only - don't use this in production
+    SECRET_KEY = get_random_secret_key()
+    print("WARNING: Using a generated SECRET_KEY for development")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
