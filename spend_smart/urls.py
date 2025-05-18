@@ -26,17 +26,15 @@ schema_view = get_schema_view(
     openapi.Info(
         title="SpendSmart API",
         default_version='v1',
-        description="API documentation for SpendSmart - Grocery Expense Tracker",
-        terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="contact@spendsmart.com"),
-        license=openapi.License(name="MIT License"),
+        description="API for SpendSmart grocery expense tracking application. To authenticate, use the /api/auth/login endpoint to get tokens, then click 'Authorize' and enter 'Bearer your_access_token'",
     ),
     public=True,
-    permission_classes=(permissions.AllowAny,),
+    permission_classes=[permissions.AllowAny],
 )
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/auth/', include('tracker.features.auth.urls')),
     path('api/', include('tracker.urls')),
     path('api-auth/', include('rest_framework.urls')),
     # Swagger documentation URLs
