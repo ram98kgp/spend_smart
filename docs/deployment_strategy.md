@@ -13,7 +13,6 @@
 3. **Message Queue & Cache** 
    - Redis for Celery task queue
    - API response caching
-   - Session management
    - Ex : (Amazon ElastiCache, Redis)
 
 4. **Database** 
