@@ -7,26 +7,26 @@
    - Django REST APIs behind Application Load Balancer
    - Stateless design for horizontal scaling
    - Containerized deployment for consistency
-   Ex : (AWS ECS/EC2)
+   - Ex : (AWS ECS/EC2)
 
 
 3. **Message Queue & Cache** 
    - Redis for Celery task queue
    - API response caching
    - Session management
-   Ex : (Amazon ElastiCache, Redis)
+   - Ex : (Amazon ElastiCache, Redis)
 
 4. **Database** 
    - Primary PostgreSQL instance for writes
    - Read replicas for analytics and reporting
    - Multi-AZ deployment for high availability
-   Ex : (Amazon RDS PostgreSQL)
+   - Ex : (Amazon RDS PostgreSQL)
 
 5. **Storage** 
    - S3 for receipt images
    - CloudFront CDN for image delivery
    - Lifecycle policies for old receipts
-   Ex : (S3 + CloudFront)
+   - Ex : (S3 + CloudFront)
 
 
 ## Scaling & Performance
