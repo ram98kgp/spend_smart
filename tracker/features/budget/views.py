@@ -10,7 +10,7 @@ from drf_yasg.utils import swagger_auto_schema
 
 from .models import Budget
 from .serializers import BudgetSerializer, BudgetAnalyticsSerializer
-from ..utils import send_budget_notification
+from .utils import send_budget_notification
 from ..receipt.models import GroceryItem
 
 class BudgetViewSet(viewsets.ModelViewSet):
